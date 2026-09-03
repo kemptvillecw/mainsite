@@ -3,8 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <title>Kemptville Creative Writers</title>
+
+  <!-- Main site styling -->
   <link rel="stylesheet" href="styles/styles.css">
+
+  <!-- Helper field styling -->
+  <link rel="stylesheet" href="styles/form-helpers.css">
 </head>
+
 <body>
   <header>
     <h1>Kemptville Creative Writers</h1>
@@ -15,11 +21,68 @@
     <section class="coming-soon">
       <h2>Coming Soon</h2>
       <p>A new home for storytellers and creative minds in Kemptville.</p>
+
+      <!-- Subscribe Box -->
+      <div class="subscribe-box" style="margin-top: 2rem;">
+        <h3>Join Our Newsletter</h3>
+        <p>Get updates as we build our creative community.</p>
+
+        <form 
+          id="newsletter-form"
+          action="https://script.google.com/macros/s/AKfycbzru3lhwrnlQvkTceBERR-gb0wIguAX3PvkOQN71QUIRLzAYayXG9MtI5Cgt7E84vciig/exec"
+          method="POST"
+        >
+
+          <!-- Quiet helper field -->
+          <div class="form-helper">
+            <label for="middle_name">Middle Name</label>
+            <input 
+              type="text"
+              id="middle_name"
+              name="middle_name"
+              autocomplete="one-time-code"
+              tabindex="-1"
+            >
+          </div>
+
+          <!-- Quiet metadata field -->
+          <input 
+            type="text" 
+            name="checksum" 
+            value="abc123" 
+            class="form-checksum"
+          >
+
+          <!-- Interaction metadata -->
+          <input type="hidden" name="interacted" value="no">
+
+          <!-- Timing metadata -->
+          <input type="hidden" name="form_started" id="form_started">
+
+          <!-- Visible email field -->
+          <label for="email">Email</label>
+          <input 
+            type="email"
+            id="email"
+            name="email"
+            required
+            style="margin-top: 0.5rem;"
+          >
+
+          <button type="submit" style="margin-top: 1rem;">
+            Join Newsletter
+          </button>
+        </form>
+      </div>
     </section>
   </main>
 
   <footer>
     <p>© 2026 Kemptville Creative Writers</p>
   </footer>
+
+  <!-- External JavaScript -->
+  <script src="scripts/form-helpers.js"></script>
+
 </body>
 </html>

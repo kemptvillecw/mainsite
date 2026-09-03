@@ -1,0 +1,9 @@
+/* Quiet helper container */
+.form-helper {
+  display: none;
+}
+
+/* Quiet metadata field */
+.form-checksum {
+  display: none;
+}
