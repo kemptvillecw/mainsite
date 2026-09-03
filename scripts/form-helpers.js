@@ -5,7 +5,6 @@ document.getElementById("newsletter-form").addEventListener("submit", async (eve
   const formData = new FormData(form);
   const messageBox = document.getElementById("newsletter-message");
 
-  // Clear previous message
   messageBox.textContent = "";
   messageBox.className = "form-message";
 
@@ -15,14 +14,30 @@ document.getElementById("newsletter-form").addEventListener("submit", async (eve
       body: formData,
     });
 
-    if (response.ok) {
+    const result = await response.json();
+
+    if (result.status === "success") {
       messageBox.textContent = "Thanks for subscribing!";
       messageBox.classList.add("success");
       form.reset();
-    } else {
-      messageBox.textContent = "Something went wrong. Please try again later.";
+    }
+
+    else if (result.status === "duplicate") {
+      messageBox.textContent = "You're already subscribed — welcome back!";
+      messageBox.classList.add("success");
+    }
+
+    else if (result.status === "error") {
+      messageBox.textContent = result.message || "Something went wrong.";
       messageBox.classList.add("error");
     }
+
+    else {
+      // Honeypot or silent rejection
+      messageBox.textContent = "Thanks! If this was a real submission, you're all set.";
+      messageBox.classList.add("success");
+    }
+
   } catch (error) {
     console.error("Error submitting form:", error);
     messageBox.textContent = "Network error. Please try again later.";

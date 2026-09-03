@@ -1,3 +1,9 @@
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 /* Quiet helper container */
 .form-helper {
   display: none;
