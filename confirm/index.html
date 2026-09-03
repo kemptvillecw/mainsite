@@ -1,16 +1,37 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta http-equiv="refresh" content="0; url=https://script.google.com/macros/s/AKfycbygvr9HpSIDeW4t2zqal9Y2cd32omIgaccC5NDvapotfEzZFzvoaZoLzA6VxNt27XMwNQ/exec?code=">
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
-    if (code) {
-      window.location.href = "https://script.google.com/macros/s/AKfycbygvr9HpSIDeW4t2zqal9Y2cd32omIgaccC5NDvapotfEzZFzvoaZoLzA6VxNt27XMwNQ/exec?code=" + encodeURIComponent(code);
-    }
-  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Subscription Confirmation | Kemptville Creative Writers</title>
+
+  <!-- Same styles as index.html -->
+  <link rel="stylesheet" href="../styles/styles.css">
+  <link rel="stylesheet" href="../styles/form-helpers.css">
 </head>
+
 <body>
-  Thank you.  Confirming now.
+  <header>
+    <h1>Kemptville Creative Writers</h1>
+    <p class="tagline">Where stories find their voice</p>
+  </header>
+
+  <main>
+    <section class="coming-soon">
+      <h2>Subscription Confirmation</h2>
+      <p id="confirm-message">Confirming your subscription…</p>
+
+      <div class="subscribe-box" style="margin-top: 2rem;">
+        <div id="confirm-status" class="form-message"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2026 Kemptville Creative Writers</p>
+  </footer>
+
+  <script src="../scripts/confirm.js"></script>
 </body>
 </html>
