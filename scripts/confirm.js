@@ -3,8 +3,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const statusBox = document.getElementById("confirm-status");
   const message = document.getElementById("confirm-message");
 
-  const pathParts = window.location.pathname.split("/");
-  const code = pathParts[pathParts.length - 1];
+  const hash = window.location.hash;
+  const code = hash.replace("#code=", "").trim();
+
+
+
+  // const pathParts = window.location.pathname.split("/");
+  // const code = pathParts[pathParts.length - 1];
 
   // const params = new URLSearchParams(window.location.search);
   // const code = params.get("code");
