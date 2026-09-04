@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Fire-and-forget confirmation request
   const scriptUrl =
-    "https://script.google.com/macros/s/AKfycbygvr9HpSIDeW4t2zqal9Y2cd32omIgaccC5NDvapotfEzZFzvoaZoLzA6VxNt27XMwNQ/exec?code=" +
+    "https://script.google.com/macros/s/AKfycbwTZO8G9_h2HiB-vw16-BrZLPtT-78m-_AX-te3QnlldN-gNptHR0tjAMz7IL9UwbkAXg/exec?code=" +
     encodeURIComponent(code);
 
   // Send the request but DO NOT depend on the response
