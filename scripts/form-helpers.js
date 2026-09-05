@@ -39,8 +39,8 @@ document.getElementById("newsletter-form").addEventListener("submit", async (eve
     }
 
     else {
-      // Honeypot or silent rejection
-      messageBox.textContent = "Thanks! If this was a real submission, you're all set.";
+      // Honeypot or silent rejection — treat as normal success
+      messageBox.textContent = "Thanks for subscribing!";
       messageBox.classList.add("success");
     }
 
