@@ -4,9 +4,15 @@ document.getElementById("newsletter-form").addEventListener("submit", async (eve
   const form = event.target;
   const formData = new FormData(form);
   const messageBox = document.getElementById("newsletter-message");
+  const submitButton = form.querySelector("button[type='submit']");
 
+  // Reset message area
   messageBox.textContent = "";
   messageBox.className = "form-message";
+
+  // Disable button + visual feedback
+  submitButton.disabled = true;
+  submitButton.textContent = "Submitting…";
 
   try {
     const response = await fetch(form.action, {
@@ -43,4 +49,8 @@ document.getElementById("newsletter-form").addEventListener("submit", async (eve
     messageBox.textContent = "Network error. Please try again later.";
     messageBox.classList.add("error");
   }
+
+  // Re-enable button after response
+  submitButton.disabled = false;
+  submitButton.textContent = "Join Newsletter";
 });

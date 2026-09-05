@@ -26,6 +26,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // Always show success — backend ALWAYS confirms correctly
   message.textContent = "Subscription Confirmed!";
   statusBox.textContent =
-    "Thanks for joining Kemptville Creative Writers. You’ll start receiving updates soon.";
+    "Thanks for joining Kemptville Creative Writers. You'll soon receive a welcome e-mail and then periodic newsletters.";
   statusBox.classList.add("success");
 });
