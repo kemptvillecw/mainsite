@@ -23,13 +23,15 @@ document.getElementById("newsletter-form").addEventListener("submit", async (eve
     const result = await response.json();
 
     if (result.status === "success") {
-      messageBox.textContent = "Thanks for subscribing!";
+      messageBox.textContent =
+        "Thanks for subscribing! You will be sent a confirmation e‑mail. If it does not appear, check your Junk/Spam folder.";
       messageBox.classList.add("success");
       form.reset();
     }
 
     else if (result.status === "duplicate") {
-      messageBox.textContent = "You're already subscribed — welcome back!";
+      messageBox.textContent =
+        "You're already subscribed — welcome back!";
       messageBox.classList.add("success");
     }
 
@@ -40,7 +42,8 @@ document.getElementById("newsletter-form").addEventListener("submit", async (eve
 
     else {
       // Honeypot or silent rejection — treat as normal success
-      messageBox.textContent = "Thanks for subscribing!";
+      messageBox.textContent =
+        "Thanks for subscribing! You will be sent a confirmation e‑mail. If it does not appear, check your Junk/Spam folder.";
       messageBox.classList.add("success");
     }
 
