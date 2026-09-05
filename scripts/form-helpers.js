@@ -29,6 +29,12 @@ document.getElementById("newsletter-form").addEventListener("submit", async (eve
       form.reset();
     }
 
+    else if (result.status === "already_pending") {
+      messageBox.textContent =
+        "You’ve already started the subscription process. If you haven’t received your confirmation e‑mail, please check your Junk/Spam folder. If it still hasn’t arrived, you can try subscribing again in about 10 minutes and a new confirmation e‑mail will be sent.";
+      messageBox.classList.add("success");
+    }
+
     else if (result.status === "duplicate") {
       messageBox.textContent =
         "You're already subscribed — welcome back!";
