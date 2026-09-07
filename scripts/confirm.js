@@ -20,7 +20,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   let result = null;
 
   try {
-    // Fetch and read JSON — but do NOT block UX
     const response = await fetch(scriptUrl);
     result = await response.json();
   } catch (_) {
@@ -28,7 +27,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     result = { status: "confirmed" };
   }
 
-  // === Only special-case we care about ===
   if (result.status === "already_confirmed") {
     message.textContent = "Already Confirmed";
     statusBox.textContent =
@@ -37,9 +35,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // === Default behavior (unchanged) ===
+  if (result.status === "invalid_code") {
+    message.textContent = "Invalid confirmation link.";
+    statusBox.textContent =
+      "The confirmation code appears to be invalid or expired.";
+    statusBox.classList.add("error");
+    return;
+  }
+
+  // Default behavior
   message.textContent = "Subscription Confirmed!";
   statusBox.textContent =
-    "Thanks for joining Kemptville Creative Writers. You'll soon receive a welcome e-mail and then periodic newsletters.";
+    "Thanks for joining Kemptville Creative Writers. You'll soon receive a welcome e‑mail and then periodic newsletters.";
   statusBox.classList.add("success");
 });
