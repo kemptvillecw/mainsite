@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const statusBox = document.getElementById("pref-status");
   const form = document.getElementById("preferences-form");
 
-  const emailField = document.getElementById("pref-email");
+  const emailDisplay = document.getElementById("pref-email-display");
   const nameField = document.getElementById("pref-name");
   const weeklyField = document.getElementById("pref-weekly");
 
@@ -49,14 +49,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Populate fields
   message.textContent = "Update your newsletter preferences below.";
-  emailField.value = result.email || "";
+  emailDisplay.textContent = `Email: ${result.email || ""}`;
   nameField.value = result.name || "";
-
-  if (result.weekly_calendar === "Yes") {
-    weeklyField.checked = true;
-  } else {
-    weeklyField.checked = false;
-  }
+  weeklyField.checked = result.weekly_calendar === "Yes";
 
   // === Save handler ===
   form.addEventListener("submit", async (event) => {
@@ -69,16 +64,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     submitButton.disabled = true;
     submitButton.textContent = "Saving…";
 
-    const saveData = new FormData();
-    saveData.append("action", "save_preferences");
-    saveData.append("code", code);
-    saveData.append("name", nameField.value.trim());
-    saveData.append("weekly_calendar", weeklyField.checked ? "Yes" : "No");
+    // FIXED: Use URLSearchParams + correct Content-Type
+    const saveData = new URLSearchParams({
+      action: "save_preferences",
+      code: code,
+      name: nameField.value.trim(),
+      weekly_calendar: weeklyField.checked ? "Yes" : "No",
+    });
 
     try {
       const response = await fetch(baseUrl, {
         method: "POST",
         body: saveData,
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
       });
 
       const saveResult = await response.json();
