@@ -22,18 +22,19 @@
       <h2>Update Your Preferences</h2>
       <p id="pref-message">Loading your preferences…</p>
 
+      <!-- Explanation -->
+      <p style="margin-top: 1rem; font-size: 0.9rem; color: #004225;">
+        Updating these preferences will change the information we keep about you,
+        including your name and whether you receive weekly library status updates.
+      </p>
+
       <div class="subscribe-box" style="margin-top: 2rem;">
         <form id="preferences-form">
 
-          <!-- Email (read-only) -->
-          <label for="pref-email">Email</label>
-          <input
-            type="email"
-            id="pref-email"
-            name="email"
-            readonly
-            style="margin-top: 0.5rem;"
-          >
+          <!-- Email (display-only, not submitted) -->
+          <p id="pref-email-display"
+             style="margin: 0 0 1rem 0; font-weight: bold;">
+          </p>
 
           <!-- Name -->
           <label for="pref-name" style="margin-top: 1rem;">Name (optional)</label>
