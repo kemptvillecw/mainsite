@@ -4,7 +4,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const form = document.getElementById("preferences-form");
 
   const emailDisplay = document.getElementById("pref-email-display");
-  const nameField = document.getElementById("pref-name");
   const weeklyField = document.getElementById("pref-weekly");
 
   // Extract code from URL fragment: #code=<uuid>
@@ -50,7 +49,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Populate fields
   message.textContent = "Update your newsletter preferences below.";
   emailDisplay.textContent = `Email: ${result.email || ""}`;
-  nameField.value = result.name || "";
   weeklyField.checked = result.weekly_calendar === "Yes";
 
   // === Save handler ===
@@ -64,11 +62,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     submitButton.disabled = true;
     submitButton.textContent = "Saving…";
 
-    // FIXED: Use URLSearchParams + correct Content-Type
+    // Only weekly_calendar + code now
     const saveData = new URLSearchParams({
       action: "save_preferences",
       code: code,
-      name: nameField.value.trim(),
       weekly_calendar: weeklyField.checked ? "Yes" : "No",
     });
 
