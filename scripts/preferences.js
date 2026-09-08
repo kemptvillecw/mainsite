@@ -7,8 +7,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const weeklyField = document.getElementById("pref-weekly");
 
   // Extract code from URL fragment: #code=<uuid>
-  const hash = window.location.hash;
-  const code = hash.replace("#code=", "").trim();
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get("code");
 
   if (!code || code.length < 10) {
     message.textContent = "Invalid preferences link.";
