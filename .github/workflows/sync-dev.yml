@@ -11,7 +11,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout source repository
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -27,15 +28,33 @@ jobs:
           echo "TARGET_TOKEN exists"
           echo "Token length: ${#TARGET_TOKEN}"
 
+      - name: Show authenticated GitHub user
+        env:
+          TARGET_TOKEN: ${{ secrets.TARGET_TOKEN }}
+        run: |
+          curl -s \
+            -H "Authorization: Bearer $TARGET_TOKEN" \
+            https://api.github.com/user
+
       - name: Test repository access
         env:
           TARGET_TOKEN: ${{ secrets.TARGET_TOKEN }}
         run: |
           git ls-remote https://x-access-token:${TARGET_TOKEN}@github.com/kemptvillecw/dev.git
 
+      - name: Test push permission
+        env:
+          TARGET_TOKEN: ${{ secrets.TARGET_TOKEN }}
+        run: |
+          git push --dry-run \
+            https://x-access-token:${TARGET_TOKEN}@github.com/kemptvillecw/dev.git \
+            HEAD:main
+
       - name: Mirror to dev repository
         env:
           TARGET_TOKEN: ${{ secrets.TARGET_TOKEN }}
         run: |
-          git remote add target https://x-access-token:${TARGET_TOKEN}@github.com/kemptvillecw/dev.git
-          git push target HEAD:main --force
+          git push \
+            https://x-access-token:${TARGET_TOKEN}@github.com/kemptvillecw/dev.git \
+            HEAD:main \
+            --force
