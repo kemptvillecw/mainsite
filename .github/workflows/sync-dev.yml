@@ -15,6 +15,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Verify secret exists
         env:
@@ -40,7 +41,8 @@ jobs:
         env:
           TARGET_TOKEN: ${{ secrets.TARGET_TOKEN }}
         run: |
-          git ls-remote https://x-access-token:${TARGET_TOKEN}@github.com/kemptvillecw/dev.git
+          git ls-remote \
+            https://x-access-token:${TARGET_TOKEN}@github.com/kemptvillecw/dev.git
 
       - name: Test push permission
         env:
