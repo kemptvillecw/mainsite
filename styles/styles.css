@@ -1987,3 +1987,12 @@ main {
     gap: 0;
   }
 }
+/* Keep the bot trap out of sight and keyboard navigation. */
+.contact-honeypot {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
