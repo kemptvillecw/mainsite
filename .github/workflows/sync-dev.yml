@@ -1,0 +1,27 @@
+name: Sync mainsite dev to dev main
+
+on:
+  push:
+    branches:
+      - dev
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Mirror dev branch to target main branch
+        env:
+          TARGET_TOKEN: ${{ secrets.TARGET_TOKEN }}
+        run: |
+          git push \
+            https://x-access-token:${TARGET_TOKEN}@github.com/kemptvillecw/dev.git \
+            HEAD:main \
+            --force
