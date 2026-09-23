@@ -1,5 +1,6 @@
 (function () {
   const events = Array.isArray(window.KCW_EVENTS) ? window.KCW_EVENTS : [];
+  let homepageEvent = null;
 
   function parseLocalDate(date, time) {
     return new Date(`${date}T${time || "00:00"}:00`);
@@ -41,11 +42,75 @@
   }
 
   function upcomingEvents(today) {
-    return events.filter((event) => isPublished(event) && event.date >= today).sort((a, b) => a.date.localeCompare(b.date));
+    return events.filter((event) => isPublished(event) && event.date >= today).sort((a, b) => a.date.localeCompare(b.date) || (a.startTime || "").localeCompare(b.startTime || ""));
+  }
+
+  function calendarToday() {
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: window.KCW_CALENDAR?.timezone || "America/Toronto", year: "numeric", month: "2-digit", day: "2-digit"
+    }).format(new Date());
+  }
+
+  async function nextCalendarEvent() {
+    const config = window.KCW_CALENDAR;
+    if (!config) return null;
+    if (location.protocol === "file:") {
+      const error = new Error("Calendar requires an approved website address");
+      error.code = "LOCAL_PREVIEW";
+      throw error;
+    }
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 20000);
+    try {
+      const url = new URL(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(config.id)}/events`);
+      url.search = new URLSearchParams({
+        key: config.apiKey, timeMin: new Date().toISOString(), timeZone: config.timezone,
+        singleEvents: "true", orderBy: "startTime", showDeleted: "false", maxResults: "1"
+      }).toString();
+      const response = await fetch(url, { signal: controller.signal });
+      const data = await response.json();
+      if (!response.ok || !Array.isArray(data.items)) {
+        const error = new Error("Calendar unavailable");
+        error.code = data.error?.details?.find((detail) => detail.reason)?.reason || "CALENDAR_UNAVAILABLE";
+        console.error("Homepage calendar request failed:", response.status, error.code);
+        throw error;
+      }
+      return data.items.find((item) => item.status !== "cancelled") || null;
+    } finally {
+      clearTimeout(timeout);
+    }
+  }
+
+  function renderCalendarEvent(target, event) {
+    const allDay = Boolean(event.start.date);
+    const start = new Date(event.start.dateTime || event.start.date);
+    const end = new Date(event.end.dateTime || event.end.date);
+    const timezone = allDay ? "UTC" : window.KCW_CALENDAR.timezone;
+    const label = (date, options) => new Intl.DateTimeFormat("en-CA", { timeZone: timezone, ...options }).format(date);
+    target.innerHTML = `<div class="featured-event-date" aria-hidden="true"><span></span><strong></strong><small></small></div>
+      <div class="featured-event-content"><p class="eyebrow">What's next</p><h2 id="featured-heading"></h2>
+      <p class="featured-event-description"></p><div class="event-meta"><div data-next-date></div><div data-next-time></div><div data-next-location></div></div>
+      <div class="event-actions"><a class="button button-primary" href="schedule.html">View Schedule &amp; Events</a></div></div>`;
+    target.querySelector(".featured-event-date span").textContent = label(start, { month: "short" }).toUpperCase();
+    target.querySelector(".featured-event-date strong").textContent = label(start, { day: "2-digit" });
+    target.querySelector(".featured-event-date small").textContent = label(start, { year: "numeric" });
+    target.querySelector("h2").textContent = event.summary || "Upcoming event";
+    const description = document.createElement("template");
+    description.innerHTML = event.description || "";
+    description.content.querySelectorAll("script, style").forEach((node) => node.remove());
+    description.content.querySelectorAll("br").forEach((node) => node.replaceWith("\n"));
+    target.querySelector(".featured-event-description").textContent = description.content.textContent.trim();
+    const dateOptions = { weekday: "long", month: "long", day: "numeric", year: "numeric" };
+    const startDay = label(start, dateOptions);
+    const endDay = label(allDay ? new Date(end.getTime() - 86400000) : end, dateOptions);
+    target.querySelector("[data-next-date]").textContent = startDay === endDay ? startDay : `${startDay} – ${endDay}`;
+    target.querySelector("[data-next-time]").textContent = allDay ? "All day" : `${label(start, { hour: "numeric", minute: "2-digit" })}–${label(end, { hour: "numeric", minute: "2-digit" })}`;
+    target.querySelector("[data-next-location]").textContent = event.location || "Location to be confirmed";
   }
 
   function selectedHomepageEvent(today) {
-    return events.find((event) => isFeatured(event, today)) || upcomingEvents(today)[0] || null;
+    const upcoming = upcomingEvents(today);
+    return upcoming.find((event) => isFeatured(event, today)) || upcoming[0] || null;
   }
 
   function speakerMarkup(event, className) {
@@ -94,18 +159,44 @@
     </article>`;
   }
 
-  function renderFeatured() {
+  async function renderFeatured() {
     const target = document.querySelector("[data-featured-event]");
     if (!target) return;
-    const today = new Date().toISOString().slice(0, 10);
+    const today = calendarToday();
     const event = selectedHomepageEvent(today);
 
+    if (!event || !isFeatured(event, today)) {
+      try {
+        const scheduled = await nextCalendarEvent();
+        const scheduledStart = scheduled && Date.parse(scheduled.start?.dateTime || scheduled.start?.date);
+        const scheduledEnd = scheduled && Date.parse(scheduled.end?.dateTime || scheduled.end?.date);
+        if (scheduled && Number.isFinite(scheduledStart) && Number.isFinite(scheduledEnd) &&
+            (!event || scheduledStart < parseLocalDate(event.date, event.startTime).getTime())) {
+          renderCalendarEvent(target, scheduled);
+          return;
+        }
+      } catch (error) {
+        console.error("Homepage calendar loading failed:", error.name, error.code || "LOAD_FAILED");
+        if (!event) {
+          target.innerHTML = `<div class="empty-event"><p class="eyebrow">What's next</p><h2 id="featured-heading">Check the schedule for our next event.</h2><p>We couldn’t load the calendar right now. Please try again shortly.</p><a class="button button-primary" href="schedule.html">View Schedule &amp; Events</a></div>`;
+          if (error.code === "LOCAL_PREVIEW" || error.code === "API_KEY_HTTP_REFERRER_BLOCKED") {
+            target.querySelector(".empty-event > p:not(.eyebrow)").textContent = "The calendar isn’t available at this preview address. View the published website for the next scheduled event.";
+            const link = target.querySelector(".empty-event > a");
+            link.href = "https://www.kemptvillecreativewriters.com/schedule.html";
+            link.textContent = "View Published Schedule";
+          }
+          return;
+        }
+      }
+    }
+
     if (!event) {
-      target.innerHTML = `<div class="empty-event"><p class="eyebrow">What's next</p><h2>Our next event is being planned.</h2><p>Please check back soon or join the newsletter for updates.</p><a class="button button-primary" href="#newsletter">Join the newsletter</a></div>`;
+      target.innerHTML = `<div class="empty-event"><p class="eyebrow">What's next</p><h2 id="featured-heading">Our next event is being planned.</h2><p>Please check back soon or join the newsletter for updates.</p><a class="button button-primary" href="#newsletter">Join the newsletter</a></div>`;
       return;
     }
 
     target.dataset.eventId = event.id;
+    homepageEvent = event;
     target.innerHTML = `<div class="featured-event-date" aria-hidden="true">
         <span>${formatMonth(event.date)}</span><strong>${formatDay(event.date)}</strong><small>${event.date.slice(0, 4)}</small>
       </div>
@@ -115,7 +206,7 @@
           <div>
         <span class="event-type event-type-${typeClass(event.type)}">${isFeatured(event, today) ? "Featured Event · " + event.type : event.type}</span>
         ${speakerMarkup(event, "featured-speaker")}
-        <h2>${event.eventTitle || event.title}</h2>
+        <h2 id="featured-heading">${event.eventTitle || event.title}</h2>
         <p class="featured-event-description">${event.description}</p>
           </div>
         </div>
@@ -138,8 +229,7 @@
   function renderLearningOutcomes() {
     const target = document.querySelector("[data-event-outcomes]");
     if (!target) return;
-    const today = new Date().toISOString().slice(0, 10);
-    const event = selectedHomepageEvent(today);
+    const event = homepageEvent;
     if (!event || (!event.learningTopic && !event.learningOutcome && !event.format)) {
       target.hidden = true;
       return;
@@ -157,8 +247,8 @@
   function renderUpcoming() {
     const target = document.querySelector("[data-upcoming-events]");
     if (!target) return;
-    const today = new Date().toISOString().slice(0, 10);
-    const selected = selectedHomepageEvent(today);
+    const today = calendarToday();
+    const selected = homepageEvent;
     const upcoming = upcomingEvents(today).filter((event) => !selected || event.id !== selected.id);
     const section = target.closest(".upcoming-section");
     if (!upcoming.length) {
@@ -210,9 +300,10 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
-    renderFeatured();
-    renderLearningOutcomes();
-    renderUpcoming();
+    renderFeatured().then(() => {
+      renderLearningOutcomes();
+      renderUpcoming();
+    });
     renderSchedule();
     renderArchive();
     renderAnnouncements();
