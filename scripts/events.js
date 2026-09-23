@@ -143,18 +143,19 @@
     return `https://calendar.google.com/calendar/render?${params.toString()}`;
   }
 
-  function eventCard(event) {
+  function eventCard(event, { archive = false } = {}) {
     return `<article class="event-card">
       <div class="event-card-date" aria-label="${formatDate(event.date)}">
         <span>${formatMonth(event.date)}</span><strong>${formatDay(event.date)}</strong><small>${event.date.slice(0, 4)}</small>
       </div>
       <div class="event-card-body">
+        ${archive && event.image ? `<img class="event-card-photo" src="${event.image}" alt="${event.imageAlt || event.speaker || ""}" loading="lazy" decoding="async">` : ""}
         <span class="event-type event-type-${typeClass(event.type)}">${event.type}</span>
         <h3>${event.eventTitle || event.title}</h3>
         ${speakerMarkup(event, "event-speaker")}
         <p>${event.description}</p>
         <div class="event-card-meta">${formatTime(event.startTime)}–${formatTime(event.endTime)} · ${event.location}</div>
-        <a class="home-link" href="schedule.html#${event.id}">Event details →</a>
+        ${archive ? "" : `<a class="home-link" href="schedule.html#${event.id}">Event details →</a>`}
       </div>
     </article>`;
   }
@@ -285,7 +286,7 @@
     if (!target) return;
     const today = new Date().toISOString().slice(0, 10);
     const past = events.filter((event) => isPublished(event) && event.date < today).sort((a, b) => b.date.localeCompare(a.date));
-    target.innerHTML = past.length ? past.map(eventCard).join("") : `<div class="empty-state panel"><h2>The archive is ready to grow.</h2><p>Past workshops, guest speakers, craft talks, and special events will appear here automatically after their event dates.</p></div>`;
+    target.innerHTML = past.length ? past.map((event) => eventCard(event, { archive: true })).join("") : `<div class="empty-state panel"><h2>The archive is ready to grow.</h2><p>Past workshops, guest speakers, craft talks, and special events will appear here automatically after their event dates.</p></div>`;
   }
 
   function renderAnnouncements() {
