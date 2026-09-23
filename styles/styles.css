@@ -1347,6 +1347,14 @@ main {
 .event-card-art span:last-child { font: 700 .62rem Arial, sans-serif; letter-spacing: .14em; margin-top: 4px; }
 
 .event-card-body { padding: 16px; }
+.event-card-photo {
+  display: block;
+  width: 100%;
+  max-width: 180px;
+  height: auto;
+  margin-bottom: 16px;
+  border-radius: 8px;
+}
 .event-card h3 { margin: 9px 0 5px; color: var(--forest-dark); font-size: 1.08rem; line-height: 1.15; }
 .event-card p { margin: 5px 0; font-size: .79rem; color: var(--muted); }
 .event-speaker { color: var(--ink) !important; }
