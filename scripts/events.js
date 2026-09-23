@@ -262,9 +262,16 @@
   function renderSchedule() {
     const target = document.querySelector("[data-schedule-events]");
     if (!target) return;
-    const today = new Date().toISOString().slice(0, 10);
+    const today = calendarToday();
     const upcoming = upcomingEvents(today);
-    target.innerHTML = upcoming.length ? upcoming.map((event) => `<article class="schedule-event" id="${event.id}">
+    if (!upcoming.length) {
+      target.hidden = true;
+      target.innerHTML = "";
+      const calendar = document.querySelector("[data-public-calendar]");
+      if (calendar) target.parentElement.append(calendar);
+      return;
+    }
+    target.innerHTML = upcoming.map((event) => `<article class="schedule-event" id="${event.id}">
       <div class="schedule-event-date"><span>${formatMonth(event.date)}</span><strong>${formatDay(event.date)}</strong><small>${event.date.slice(0, 4)}</small></div>
       <div class="schedule-event-main">
         <span class="event-type event-type-${typeClass(event.type)}">${event.type}</span>
@@ -278,7 +285,7 @@
         </div>
         <div class="event-actions"><a class="button button-primary" href="${calendarUrl(event)}" target="_blank" rel="noopener">Add to Calendar</a><a class="button" href="${event.directions}" target="_blank" rel="noopener">Directions</a></div>
       </div>
-    </article>`).join("") : `<p class="empty-state panel">No upcoming events are currently published. Please check back soon.</p>`;
+    </article>`).join("");
   }
 
   function renderArchive() {

@@ -1385,6 +1385,9 @@ main {
 .visitor-list .checks { margin: 0; }
 
 .schedule-calendar { margin-top: 28px; min-width: 0; }
+.schedule-layout > div { min-width: 0; }
+.schedule-layout .schedule-calendar { margin-top: 0; }
+.schedule-events[hidden] { display: none; }
 .schedule-calendar-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
 .schedule-calendar-heading h2 { margin-bottom: 0; }
 .schedule-calendar [hidden] { display: none; }
