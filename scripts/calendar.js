@@ -25,14 +25,6 @@
     row.appendChild(td);
     return td;
   }
-  function plainDescription(value) {
-    const template = document.createElement('template');
-    template.innerHTML = value;
-    template.content.querySelectorAll('script, style').forEach((node) => node.remove());
-    template.content.querySelectorAll('br').forEach((node) => node.replaceWith('\n'));
-    template.content.querySelectorAll('p, div').forEach((node) => node.append('\n'));
-    return template.content.textContent.trim();
-  }
   function render(events) {
     const fragment = document.createDocumentFragment();
     events.forEach((event) => {
@@ -46,12 +38,13 @@
       const strong = document.createElement('strong');
       strong.textContent = event.title || 'Untitled event';
       title.appendChild(strong);
-      if (event.description) {
+      const publicDescription = window.KCWEventDescription.plainText(event.description);
+      if (publicDescription) {
         const details = document.createElement('details');
         const summary = document.createElement('summary');
         summary.textContent = 'Event details';
         const description = document.createElement('p');
-        description.textContent = plainDescription(event.description);
+        description.textContent = publicDescription;
         details.append(summary, description);
         title.appendChild(details);
       }
@@ -102,6 +95,8 @@
         }
         if (!Array.isArray(data.items)) throw new Error('Invalid calendar response');
         data.items.filter((item) => item.status !== 'cancelled').forEach((item) => {
+          const metadata = window.KCWEventDescription.metadata(item.description);
+          if (!window.KCWEventDescription.isPublic(metadata)) return;
           const start = Date.parse(item.start?.dateTime || item.start?.date);
           const end = Date.parse(item.end?.dateTime || item.end?.date);
           if (!Number.isFinite(start) || !Number.isFinite(end)) throw new Error('Invalid event date');

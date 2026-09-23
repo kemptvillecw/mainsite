@@ -51,7 +51,7 @@
     }).format(new Date());
   }
 
-  async function nextCalendarEvent() {
+  async function nextCalendarEvent(today) {
     const config = window.KCW_CALENDAR;
     if (!config) return null;
     if (location.protocol === "file:") {
@@ -63,49 +63,119 @@
     const timeout = setTimeout(() => controller.abort(), 20000);
     try {
       const url = new URL(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(config.id)}/events`);
+      const until = new Date();
+      until.setUTCDate(until.getUTCDate() + (config.featuredDaysAhead || 366));
       url.search = new URLSearchParams({
         key: config.apiKey, timeMin: new Date().toISOString(), timeZone: config.timezone,
-        singleEvents: "true", orderBy: "startTime", showDeleted: "false", maxResults: "1"
+        timeMax: until.toISOString(),
+        singleEvents: "true", orderBy: "startTime", showDeleted: "false", maxResults: "250"
       }).toString();
-      const response = await fetch(url, { signal: controller.signal });
-      const data = await response.json();
-      if (!response.ok || !Array.isArray(data.items)) {
-        const error = new Error("Calendar unavailable");
-        error.code = data.error?.details?.find((detail) => detail.reason)?.reason || "CALENDAR_UNAVAILABLE";
-        console.error("Homepage calendar request failed:", response.status, error.code);
-        throw error;
-      }
-      return data.items.find((item) => item.status !== "cancelled") || null;
+      let next = null;
+      do {
+        const response = await fetch(url, { signal: controller.signal });
+        const data = await response.json();
+        if (!response.ok || !Array.isArray(data.items)) {
+          const error = new Error("Calendar unavailable");
+          error.code = data.error?.details?.find((detail) => detail.reason)?.reason || "CALENDAR_UNAVAILABLE";
+          console.error("Homepage calendar request failed:", response.status, error.code);
+          throw error;
+        }
+        for (const item of data.items) {
+          if (item.status === "cancelled" ||
+              !Number.isFinite(Date.parse(item.start?.dateTime || item.start?.date)) ||
+              !Number.isFinite(Date.parse(item.end?.dateTime || item.end?.date))) continue;
+          item.metadata = window.KCWEventDescription.metadata(item.description);
+          if (!window.KCWEventDescription.isPublic(item.metadata)) continue;
+          if (!next) next = item;
+          if (window.KCWEventDescription.isFeatured(item.metadata, today)) return item;
+        }
+        if (!data.nextPageToken) return next;
+        url.searchParams.set("pageToken", data.nextPageToken);
+      } while (true);
     } finally {
       clearTimeout(timeout);
     }
   }
 
   function renderCalendarEvent(target, event) {
+    const metadata = event.metadata || {};
+    const featured = window.KCWEventDescription.isFeatured(metadata, calendarToday());
+    homepageEvent = { ...metadata, id: event.id, title: event.summary || "Upcoming event" };
     const allDay = Boolean(event.start.date);
     const start = new Date(event.start.dateTime || event.start.date);
     const end = new Date(event.end.dateTime || event.end.date);
     const timezone = allDay ? "UTC" : window.KCW_CALENDAR.timezone;
     const label = (date, options) => new Intl.DateTimeFormat("en-CA", { timeZone: timezone, ...options }).format(date);
     target.innerHTML = `<div class="featured-event-date" aria-hidden="true"><span></span><strong></strong><small></small></div>
-      <div class="featured-event-content"><p class="eyebrow">What's next</p><h2 id="featured-heading"></h2>
-      <p class="featured-event-description"></p><div class="event-meta"><div data-next-date></div><div data-next-time></div><div data-next-location></div></div>
+      <div class="featured-event-content"><div class="featured-event-intro"><div>
+      <p class="eyebrow">What's next</p><p class="featured-speaker" hidden></p><h2 id="featured-heading"></h2>
+      <p class="featured-event-description"></p></div></div><div class="event-meta"><div data-next-date></div><div data-next-time></div><div data-next-location></div></div>
       <div class="event-actions"><a class="button button-primary" href="schedule.html">View Schedule &amp; Events</a></div></div>`;
     target.querySelector(".featured-event-date span").textContent = label(start, { month: "short" }).toUpperCase();
     target.querySelector(".featured-event-date strong").textContent = label(start, { day: "2-digit" });
     target.querySelector(".featured-event-date small").textContent = label(start, { year: "numeric" });
-    target.querySelector("h2").textContent = event.summary || "Upcoming event";
-    const description = document.createElement("template");
-    description.innerHTML = event.description || "";
-    description.content.querySelectorAll("script, style").forEach((node) => node.remove());
-    description.content.querySelectorAll("br").forEach((node) => node.replaceWith("\n"));
-    target.querySelector(".featured-event-description").textContent = description.content.textContent.trim();
+    target.querySelector("h2").textContent = metadata.eventTitle || event.summary || "Upcoming event";
+    if (featured) {
+      const badge = target.querySelector(".eyebrow");
+      badge.className = `event-type event-type-${typeClass(metadata.type || "Event")}`;
+      badge.textContent = `Featured Event${metadata.type ? " · " + metadata.type : ""}`;
+    }
+    const safeUrl = (value) => {
+      if (!value) return null;
+      try {
+        const url = new URL(value, document.baseURI);
+        return ['https:', 'http:'].includes(url.protocol) ? url.href : null;
+      } catch { return null; }
+    };
+    const imageUrl = safeUrl(metadata.image);
+    if (imageUrl) {
+      const intro = target.querySelector(".featured-event-intro");
+      intro.classList.add("featured-event-intro--with-image");
+      const photo = document.createElement("img");
+      photo.className = "featured-event-photo";
+      photo.src = imageUrl;
+      photo.alt = metadata.imageAlt || metadata.speaker || "";
+      photo.loading = "lazy";
+      photo.decoding = "async";
+      photo.title = (["Guest Speaker", "Author"].includes(metadata.type) || metadata.speakerRole === "Author")
+        ? metadata.speaker || metadata.hoverText || "" : metadata.hoverText || "";
+      intro.prepend(photo);
+    }
+    if (metadata.speaker) {
+      const speaker = target.querySelector(".featured-speaker");
+      speaker.hidden = false;
+      const strong = document.createElement("strong");
+      const speakerUrl = safeUrl(metadata.speakerUrl);
+      if (speakerUrl) {
+        const link = document.createElement("a");
+        link.href = speakerUrl;
+        link.target = "_blank";
+        link.rel = "noopener";
+        link.textContent = metadata.speaker;
+        strong.append(link);
+      } else strong.textContent = metadata.speaker;
+      speaker.append(strong);
+      if (metadata.speakerRole) speaker.append(` · ${metadata.speakerRole}`);
+    }
+    const directions = safeUrl(metadata.directions);
+    if (directions) {
+      const link = document.createElement("a");
+      link.className = "button";
+      link.href = directions;
+      link.target = "_blank";
+      link.rel = "noopener";
+      link.textContent = "Directions";
+      target.querySelector(".event-actions").append(link);
+    }
+    const description = target.querySelector(".featured-event-description");
+    description.textContent = window.KCWEventDescription.plainText(event.description);
+    description.hidden = !description.textContent;
     const dateOptions = { weekday: "long", month: "long", day: "numeric", year: "numeric" };
     const startDay = label(start, dateOptions);
     const endDay = label(allDay ? new Date(end.getTime() - 86400000) : end, dateOptions);
     target.querySelector("[data-next-date]").textContent = startDay === endDay ? startDay : `${startDay} – ${endDay}`;
     target.querySelector("[data-next-time]").textContent = allDay ? "All day" : `${label(start, { hour: "numeric", minute: "2-digit" })}–${label(end, { hour: "numeric", minute: "2-digit" })}`;
-    target.querySelector("[data-next-location]").textContent = event.location || "Location to be confirmed";
+    target.querySelector("[data-next-location]").textContent = [event.location, metadata.address].filter(Boolean).join(" · ") || "Location to be confirmed";
   }
 
   function selectedHomepageEvent(today) {
@@ -166,13 +236,15 @@
     const today = calendarToday();
     const event = selectedHomepageEvent(today);
 
-    if (!event || !isFeatured(event, today)) {
+    {
       try {
-        const scheduled = await nextCalendarEvent();
+        const scheduled = await nextCalendarEvent(today);
         const scheduledStart = scheduled && Date.parse(scheduled.start?.dateTime || scheduled.start?.date);
         const scheduledEnd = scheduled && Date.parse(scheduled.end?.dateTime || scheduled.end?.date);
         if (scheduled && Number.isFinite(scheduledStart) && Number.isFinite(scheduledEnd) &&
-            (!event || scheduledStart < parseLocalDate(event.date, event.startTime).getTime())) {
+            (!event || (window.KCWEventDescription.isFeatured(scheduled.metadata, today)
+              ? !isFeatured(event, today) || scheduledStart < parseLocalDate(event.date, event.startTime).getTime()
+              : !isFeatured(event, today) && scheduledStart < parseLocalDate(event.date, event.startTime).getTime()))) {
           renderCalendarEvent(target, scheduled);
           return;
         }
@@ -262,9 +334,17 @@
   function renderSchedule() {
     const target = document.querySelector("[data-schedule-events]");
     if (!target) return;
-    const today = new Date().toISOString().slice(0, 10);
+    const today = calendarToday();
     const upcoming = upcomingEvents(today);
-    target.innerHTML = upcoming.length ? upcoming.map((event) => `<article class="schedule-event" id="${event.id}">
+    if (!upcoming.length) {
+      target.hidden = true;
+      target.innerHTML = "";
+      const calendar = document.querySelector("[data-public-calendar]");
+      if (calendar) target.parentElement.append(calendar);
+      return;
+    }
+    target.hidden = false;
+    target.innerHTML = upcoming.map((event) => `<article class="schedule-event" id="${event.id}">
       <div class="schedule-event-date"><span>${formatMonth(event.date)}</span><strong>${formatDay(event.date)}</strong><small>${event.date.slice(0, 4)}</small></div>
       <div class="schedule-event-main">
         <span class="event-type event-type-${typeClass(event.type)}">${event.type}</span>
@@ -278,7 +358,7 @@
         </div>
         <div class="event-actions"><a class="button button-primary" href="${calendarUrl(event)}" target="_blank" rel="noopener">Add to Calendar</a><a class="button" href="${event.directions}" target="_blank" rel="noopener">Directions</a></div>
       </div>
-    </article>`).join("") : `<p class="empty-state panel">No upcoming events are currently published. Please check back soon.</p>`;
+    </article>`).join("");
   }
 
   function renderArchive() {
