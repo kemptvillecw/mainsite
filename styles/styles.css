@@ -1740,13 +1740,13 @@ main {
 
 /* Featured event */
 .featured-section {
-  padding: 30px 0 34px;
+  padding: 22px 0;
 }
 
 .featured-section .featured-event {
   width: 100%;
   margin: 0;
-  grid-template-columns: 120px minmax(0, 1fr);
+  grid-template-columns: 88px minmax(0, 1fr);
   background: transparent;
   border: 0;
   box-shadow: none;
@@ -1755,15 +1755,21 @@ main {
 .featured-section .featured-event-date {
   border-right: 1px solid var(--line);
   background: transparent;
-  min-height: 190px;
+  min-height: 0;
+  justify-content: flex-start;
+  padding-top: 12px;
+}
+
+.featured-section .featured-event-date strong {
+  font-size: 2.6rem;
 }
 
 .featured-section .featured-event-content {
-  padding: 0 0 0 32px;
+  padding: 0 0 0 22px;
 }
 
 .featured-section .featured-event-content h2 {
-  font-size: clamp(1.85rem, 2.6vw, 2.35rem);
+  font-size: clamp(1.5rem, 2.2vw, 1.85rem);
   margin-bottom: 8px;
 }
 
@@ -1771,21 +1777,21 @@ main {
   max-width: 700px;
 }
 
-.featured-section .featured-event-meta {
-  margin-top: 16px;
-  padding-top: 14px;
+.featured-section .event-meta {
+  margin-top: 14px;
+  padding: 10px 0;
 }
 
-.featured-section .featured-event-actions {
-  margin-top: 16px;
+.featured-section .event-actions {
+  margin-top: 12px;
 }
 
 /* Learning section */
 .featured-event-intro--with-image {
   display: grid;
-  grid-template-columns: 180px minmax(0, 1fr);
+  grid-template-columns: 96px minmax(0, 1fr);
   align-items: start;
-  gap: 24px;
+  gap: 18px;
 }
 
 .featured-event-photo {
@@ -1797,14 +1803,14 @@ main {
   border-radius: 8px;
 }
 
-@media (max-width: 850px) {
+@media (max-width: 480px) {
   .featured-event-intro--with-image {
-    grid-template-columns: 1fr;
-    gap: 18px;
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 12px;
   }
 
   .featured-event-photo {
-    max-width: 240px;
+    max-width: 72px;
   }
 }
 
@@ -1956,8 +1962,12 @@ main {
     min-height: 0;
     border-right: 0;
     border-bottom: 1px solid var(--line);
-    padding: 0 0 14px;
-    margin-bottom: 18px;
+    padding: 0 0 10px;
+    margin-bottom: 12px;
+  }
+
+  .featured-section .featured-event-date strong {
+    font-size: 1rem;
   }
 
   .featured-section .featured-event-content {
