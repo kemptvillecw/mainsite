@@ -1,0 +1,11 @@
+{
+  "name": "kcw-website",
+  "private": true,
+  "scripts": {
+    "preview:content": "node dev-tools/serve.mjs --demo",
+    "test:content": "node dev-tools/content.test.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

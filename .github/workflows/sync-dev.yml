@@ -6,8 +6,16 @@ on:
       - dev
   workflow_dispatch:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-dev-main
+  cancel-in-progress: false
+
 jobs:
   sync:
+    if: github.repository == 'kemptvillecw/mainsite' && github.ref == 'refs/heads/dev'
     runs-on: ubuntu-latest
 
     steps:
@@ -17,11 +25,34 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Mirror dev branch to target main branch
+      # This commit exists only in the runner and the destination repository.
+      # Never promote the dev domain back into mainsite's production branches.
+      - name: Set and verify the dev Pages domain
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f -- CNAME
+          printf '%s\n' 'dev.kemptvillecreativewriters.com' > CNAME
+          git add -- CNAME
+          if ! git diff --cached --quiet; then
+            git -c user.name='github-actions[bot]' \
+              -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+              commit -m 'Set dev GitHub Pages custom domain'
+          fi
+          git show HEAD:CNAME | cmp - <(printf '%s\n' 'dev.kemptvillecreativewriters.com')
+
+      - name: Publish prepared dev commit to target main branch
         env:
           TARGET_TOKEN: ${{ secrets.TARGET_TOKEN }}
+        shell: bash
         run: |
+          set -euo pipefail
           git push \
             https://x-access-token:${TARGET_TOKEN}@github.com/kemptvillecw/dev.git \
             HEAD:main \
             --force
+          git fetch --no-tags \
+            https://x-access-token:${TARGET_TOKEN}@github.com/kemptvillecw/dev.git \
+            refs/heads/main
+          test "$(git rev-parse HEAD)" = "$(git rev-parse FETCH_HEAD)"
+          git show FETCH_HEAD:CNAME | cmp - <(printf '%s\n' 'dev.kemptvillecreativewriters.com')

@@ -1,0 +1,68 @@
+name: Maintain repository Pages domain
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cname-${{ github.repository }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  cname:
+    if: >-
+      (github.repository == 'kemptvillecw/mainsite' &&
+       (github.event_name == 'pull_request' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')) ||
+      (github.repository == 'kemptvillecw/dev' &&
+       (github.base_ref == 'main' || github.ref == 'refs/heads/main'))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Repair the latest branch tip; never rewind to an older push event.
+          ref: ${{ github.ref }}
+
+      - name: Check or restore the repository domain
+        id: domain
+        shell: bash
+        env:
+          EXPECTED_DOMAIN: ${{ github.repository == 'kemptvillecw/dev' && 'dev.kemptvillecreativewriters.com' || 'www.kemptvillecreativewriters.com' }}
+          EVENT_NAME: ${{ github.event_name }}
+          BRANCH_REF: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          if test -f CNAME && ! test -L CNAME && cmp -s CNAME <(printf '%s\n' "$EXPECTED_DOMAIN"); then
+            exit 0
+          fi
+          if test "$EVENT_NAME" = 'pull_request'; then
+            echo "::error::CNAME must contain exactly $EXPECTED_DOMAIN followed by a newline."
+            exit 1
+          fi
+          # Replace a symlink instead of following it outside the checkout.
+          rm -f -- CNAME
+          printf '%s\n' "$EXPECTED_DOMAIN" > CNAME
+          git add -- CNAME
+          git -c user.name='github-actions[bot]' \
+            -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit -m 'Restore repository GitHub Pages domain'
+          # A concurrent update makes this fail safely; its push triggers a new run.
+          git push origin "HEAD:$BRANCH_REF"
+          git fetch --no-tags origin "$BRANCH_REF"
+          git show FETCH_HEAD:CNAME | cmp - <(printf '%s\n' "$EXPECTED_DOMAIN")
+          echo 'repaired=true' >> "$GITHUB_OUTPUT"
+
+      # GITHUB_TOKEN commits do not start Pages builds automatically.
+      - name: Rebuild Pages after repairing its publishing branch
+        if: steps.domain.outputs.repaired == 'true' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method POST "repos/$GITHUB_REPOSITORY/pages/builds"
