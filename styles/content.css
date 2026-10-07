@@ -1,0 +1,53 @@
+/* Public reading and discovery, using the existing KCW visual language. */
+[hidden] { display: none !important; }
+.content-browse { display: grid; grid-template-columns: 245px minmax(0, 1fr); gap: 2rem; align-items: start; }
+.content-sidebar { background: #f4f0e5; border: 1px solid #d9dece; border-radius: 12px; padding: 1.25rem; }
+.content-sidebar h2 { font-size: 1.25rem; margin-top: 0; }
+.content-filter { padding: .8rem 0; border-bottom: 1px solid #d5dcca; }
+.content-filter summary { cursor: pointer; font-weight: bold; }
+.content-filter fieldset { border: 0; margin: .75rem 0 0; padding: 0; }
+.content-filter label { display: flex; gap: .6rem; align-items: baseline; padding: .3rem 0; overflow-wrap: anywhere; }
+.content-filter input { width: 1rem; height: 1rem; accent-color: #254b3b; }
+.content-dates { border: 0; padding: 1rem 0 0; margin: 0; min-width: 0; }
+.content-dates legend { padding-top: 1rem; font-weight: bold; }
+.content-dates label { display: block; margin-top: .6rem; }
+.content-dates input, .content-dates select { display: block; width: 100%; min-width: 0; padding: .6rem; background: white; border: 1px solid #849b8e; border-radius: 4px; color: #18382d; font: inherit; }
+.content-list-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.content-list-heading h2 { margin-top: 0; }
+.content-chips, .content-tags, .content-pagination { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.content-chip, .content-clear { font: inherit; font-size: .9rem; padding: .45rem .7rem; border: 1px solid #708b79; border-radius: 20px; background: #e9efe4; color: #18382d; cursor: pointer; }
+.content-clear { background: transparent; border-color: transparent; text-decoration: underline; }
+.content-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.4rem; }
+.content-card { border: 1px solid #d3dccb; border-radius: 12px; overflow: hidden; background: #fffef9; box-shadow: 0 4px 12px #18382d09; }
+.content-card > img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+.content-card-body { padding: 1.4rem; overflow-wrap: anywhere; }
+.content-card h2 { font-size: 1.5rem; line-height: 1.3; margin: .4rem 0 .75rem; }
+.content-kind { text-transform: uppercase; letter-spacing: .12em; font-size: .75rem; font-weight: bold; margin: 0; }
+.content-attribution, .content-domain { font-size: .9rem; color: #425b4d; }
+.content-tags { margin: 1rem 0; }
+.content-tags a { font-size: .85rem; background: #eef1e7; border-radius: 5px; padding: .2rem .55rem; }
+.content-sensitive { border-left: 3px solid #a78339; padding: .5rem .8rem; background: #fff5dc; font-size: .9rem; }
+.content-pagination { justify-content: center; margin-top: 2rem; gap: 1rem; }
+.content-pagination button:disabled { opacity: .45; cursor: default; }
+.content-empty { grid-column: 1 / -1; padding: 2rem; background: #f4f0e5; border-radius: 8px; }
+.content-link-notice { padding: 1.5rem; border-top: 1px solid #ccd6c4; font-size: .95rem; }
+.content-link-notice p { margin-bottom: 0; }
+.content-reading { max-width: 900px; }
+.content-back { display: inline-block; margin-bottom: 1rem; }
+.content-reader { max-width: 720px; margin: 2rem auto 3rem; overflow-wrap: anywhere; }
+.content-reader h1 { font-size: clamp(2rem, 5vw, 3.4rem); line-height: 1.15; }
+.content-reader-image, .content-body img { max-width: 100%; height: auto; border-radius: 8px; }
+.content-lead { font-size: 1.2rem; color: #425b4d; }
+.content-body { font-size: 1.1rem; line-height: 1.85; }
+.content-body h2, .content-body h3, .content-body h4 { line-height: 1.3; margin-top: 2rem; }
+.content-body blockquote { margin: 1.5rem 0; padding: .5rem 1.5rem; border-left: 3px solid #6b8b70; font-style: italic; }
+.content-verse { white-space: pre-wrap; font: inherit; overflow-wrap: anywhere; }
+.content-body hr { width: 5rem; margin: 2.5rem auto; border: 0; border-top: 1px solid #849b8e; }
+.content-body figure { margin: 1.5rem 0; }
+.content-body figcaption { font-size: .9rem; color: #425b4d; }
+.content-reader-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+@media (max-width: 800px) { .content-browse { grid-template-columns: 1fr; } .content-grid { grid-template-columns: 1fr; } .content-sidebar { padding: 1rem; } }
+
+.hero-content { min-height: 280px; background: linear-gradient(110deg, #163f32, #375948); color: #fffdf5; }
+.hero-content .hero-copy { max-width: 800px; }
