@@ -25,10 +25,47 @@
     row.appendChild(td);
     return td;
   }
+  function eventShareUrl(eventId) {
+    const url = new URL(`share/events/${encodeURIComponent(eventId)}.html`, document.baseURI);
+    url.searchParams.set('v', '3');
+    return url;
+  }
+  function facebookShareUrl(shareUrl) {
+    const url = new URL('https://www.facebook.com/sharer/sharer.php');
+    url.searchParams.set('u', shareUrl.href);
+    return url.href;
+  }
+  async function addFacebookShareButton(event, row, target) {
+    if (!event.id) return;
+    const shareUrl = eventShareUrl(event.id);
+    try {
+      let response = await fetch(shareUrl, { method: 'HEAD', cache: 'no-store' });
+      if (response.status === 405) {
+        response = await fetch(shareUrl, { method: 'GET', cache: 'no-store' });
+      }
+      if (!response.ok || !row.isConnected) return;
+    } catch (error) {
+      console.info('Facebook share artifact is not available yet for this event.');
+      return;
+    }
+    const actions = document.createElement('div');
+    actions.className = 'event-actions';
+    const link = document.createElement('a');
+    link.className = 'button';
+    link.href = facebookShareUrl(shareUrl);
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = 'Share to Facebook';
+    link.setAttribute('aria-label', `Share ${event.title || 'this event'} to Facebook`);
+    actions.appendChild(link);
+    target.appendChild(actions);
+  }
   function render(events) {
     const fragment = document.createDocumentFragment();
+    const shareTargets = [];
     events.forEach((event) => {
       const row = document.createElement('tr');
+      row.id = event.id || '';
       const startDay = dateLabel(event.start, event.allDay);
       // All-day DTEND is exclusive.
       const endDay = dateLabel(event.allDay ? event.end - 86400000 : event.end, event.allDay);
@@ -48,9 +85,13 @@
         details.append(summary, description);
         title.appendChild(details);
       }
+      if (event.id) shareTargets.push({ event, row, target: title });
       fragment.appendChild(row);
     });
     rows.replaceChildren(fragment);
+    shareTargets.forEach(({ event, row, target }) => {
+      addFacebookShareButton(event, row, target);
+    });
     wrapper.hidden = !events.length;
     status.hidden = events.length > 0;
     status.textContent = events.length
@@ -97,10 +138,12 @@
         data.items.filter((item) => item.status !== 'cancelled').forEach((item) => {
           const metadata = window.KCWEventDescription.metadata(item.description);
           if (!window.KCWEventDescription.isPublic(metadata)) return;
+          const eventId = typeof item.id === 'string' ? item.id.trim() : '';
+          if (!eventId) return;
           const start = Date.parse(item.start?.dateTime || item.start?.date);
           const end = Date.parse(item.end?.dateTime || item.end?.date);
           if (!Number.isFinite(start) || !Number.isFinite(end)) throw new Error('Invalid event date');
-          events.push({ title: item.summary || '', description: item.description || '',
+          events.push({ id: eventId, title: item.summary || '', description: item.description || '',
             start, end, allDay: Boolean(item.start.date) });
         });
         pageToken = data.nextPageToken;

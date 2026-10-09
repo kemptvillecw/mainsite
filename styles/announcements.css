@@ -1,0 +1,47 @@
+/* Homepage announcements: visually distinct notices without changing their wording. */
+.announcement-stack {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+.announcement {
+  margin: 0;
+  padding: 15px 24px;
+  background: var(--forest-dark);
+  border: 0;
+  border-bottom: 3px solid var(--forest);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  box-shadow: 0 4px 12px rgba(18, 43, 35, 0.16);
+  font: 1rem/1.35 Arial, sans-serif;
+}
+
+.announcement strong {
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  font-size: .78rem;
+  white-space: nowrap;
+}
+
+.announcement span {
+  color: #fff;
+  font-weight: 600;
+}
+
+@media (max-width: 700px) {
+  .announcement {
+    padding: 13px 16px;
+    gap: 5px;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .announcement strong {
+    white-space: normal;
+  }
+}

@@ -27,19 +27,30 @@ jobs:
 
       # This commit exists only in the runner and the destination repository.
       # Never promote the dev domain back into mainsite's production branches.
-      - name: Set and verify the dev Pages domain
+      - name: Prepare dev Pages domain and share metadata
         shell: bash
         run: |
           set -euo pipefail
           rm -f -- CNAME
           printf '%s\n' 'dev.kemptvillecreativewriters.com' > CNAME
-          git add -- CNAME
+
+          if compgen -G 'share/events/*.html' > /dev/null; then
+            sed -i \
+              's#https://www.kemptvillecreativewriters.com/#https://dev.kemptvillecreativewriters.com/#g' \
+              share/events/*.html
+          fi
+
+          git add -- CNAME share/events
           if ! git diff --cached --quiet; then
             git -c user.name='github-actions[bot]' \
               -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
-              commit -m 'Set dev GitHub Pages custom domain'
+              commit -m 'Prepare dev GitHub Pages environment'
           fi
+
           git show HEAD:CNAME | cmp - <(printf '%s\n' 'dev.kemptvillecreativewriters.com')
+          if compgen -G 'share/events/*.html' > /dev/null; then
+            ! grep -R -F 'https://www.kemptvillecreativewriters.com/' share/events/*.html
+          fi
 
       - name: Publish prepared dev commit to target main branch
         env:
