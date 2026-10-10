@@ -25,10 +25,17 @@
     row.appendChild(td);
     return td;
   }
+  function safeUrl(value) {
+    if (!value) return null;
+    try {
+      const url = new URL(value, document.baseURI);
+      return ['https:', 'http:'].includes(url.protocol) ? url.href : null;
+    } catch {
+      return null;
+    }
+  }
   function eventShareUrl(eventId) {
-    const url = new URL(`share/events/${encodeURIComponent(eventId)}.html`, document.baseURI);
-    url.searchParams.set('v', '3');
-    return url;
+    return new URL(`share/events/${encodeURIComponent(eventId)}.html`, document.baseURI);
   }
   function facebookShareUrl(shareUrl) {
     const url = new URL('https://www.facebook.com/sharer/sharer.php');
@@ -72,9 +79,40 @@
       cell(row, startDay === endDay ? startDay : `${startDay} – ${endDay}`, 'Date');
       cell(row, event.allDay ? 'All day' : `${timeLabel(event.start)} – ${timeLabel(event.end)}`, 'Time (EST)');
       const title = cell(row, '', 'Event');
+
+      const imageUrl = safeUrl(event.image);
+      if (imageUrl) {
+        const image = document.createElement('img');
+        image.className = 'event-card-photo';
+        image.src = imageUrl;
+        image.alt = event.imageAlt || event.speaker || '';
+        image.loading = 'lazy';
+        image.decoding = 'async';
+        title.appendChild(image);
+      }
+
       const strong = document.createElement('strong');
       strong.textContent = event.title || 'Untitled event';
       title.appendChild(strong);
+
+      if (event.speaker) {
+        const speaker = document.createElement('p');
+        speaker.className = 'event-speaker';
+        const speakerUrl = safeUrl(event.speakerUrl);
+        if (speakerUrl) {
+          const link = document.createElement('a');
+          link.href = speakerUrl;
+          link.target = '_blank';
+          link.rel = 'noopener';
+          link.textContent = event.speaker;
+          speaker.appendChild(link);
+        } else {
+          speaker.textContent = event.speaker;
+        }
+        if (event.speakerRole) speaker.append(` · ${event.speakerRole}`);
+        title.appendChild(speaker);
+      }
+
       const publicDescription = window.KCWEventDescription.plainText(event.description);
       if (publicDescription) {
         const details = document.createElement('details');
@@ -143,8 +181,19 @@
           const start = Date.parse(item.start?.dateTime || item.start?.date);
           const end = Date.parse(item.end?.dateTime || item.end?.date);
           if (!Number.isFinite(start) || !Number.isFinite(end)) throw new Error('Invalid event date');
-          events.push({ id: eventId, title: item.summary || '', description: item.description || '',
-            start, end, allDay: Boolean(item.start.date) });
+          events.push({
+            id: eventId,
+            title: metadata.eventTitle || item.summary || '',
+            description: item.description || '',
+            start,
+            end,
+            allDay: Boolean(item.start.date),
+            image: metadata.image || '',
+            imageAlt: metadata.imageAlt || '',
+            speaker: metadata.speaker || '',
+            speakerRole: metadata.speakerRole || '',
+            speakerUrl: metadata.speakerUrl || ''
+          });
         });
         pageToken = data.nextPageToken;
       } while (pageToken);
