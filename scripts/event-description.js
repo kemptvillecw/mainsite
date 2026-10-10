@@ -1,4 +1,22 @@
 (function (root) {
+  const STYLE_ID = 'kcw-event-description-formatting';
+
+  // Calendar descriptions are always rendered as text. Preserve author-entered
+  // paragraph/line breaks with CSS rather than inserting calendar HTML into the page.
+  function ensureFormattingStyles() {
+    if (!document.head || document.getElementById(STYLE_ID)) return;
+    const style = document.createElement('style');
+    style.id = STYLE_ID;
+    style.textContent = `
+      .featured-event-description,
+      [data-public-calendar] details p {
+        white-space: pre-line;
+        overflow-wrap: anywhere;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   // Metadata belongs to the editor, not the public event description.
   function descriptionText(value) {
     const template = document.createElement('template');
@@ -45,5 +63,7 @@
       && (!metadata.featureStart || today >= metadata.featureStart)
       && (!metadata.featureEnd || today <= metadata.featureEnd);
   }
+
+  ensureFormattingStyles();
   root.KCWEventDescription = { plainText, metadata, isPublic, isFeatured };
 })(window);
