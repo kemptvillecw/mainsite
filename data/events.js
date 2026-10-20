@@ -1,5 +1,27 @@
 window.KCW_EVENTS = [
   {
+    id: "john-w-partington-publishing-ai-2026-10-19",
+    date: "2026-10-19",
+    startTime: "18:00",
+    endTime: "19:50",
+    type: "Guest Speaker",
+    title: "John W Partington — Types of Publishing, the use of AI for advertising and a writing technical topic.",
+    eventTitle: "Types of Publishing, the use of AI for advertising and a writing technical topic.",
+    description: "John W Partington, is a local author from Richmond (the South-West borough of Ottawa). He writes mainly Science-Fiction and Fantasy, with one comedy series about life in a small town. His wife is his best friend. He is staff to exceptionally spoiled cats. He was a soldier in his youth, which resulted in a tragic bout of psychosis after a bad mission overseas. He’s much better now, but still a little squirrely.",
+    speaker: "John W Partington",
+    speakerRole: "Author",
+    image: "images/event_17915911587281343658729.jpg",
+    imageAlt: "John W Partington",
+    hoverText: "",
+    speakerUrl: "https://johnwpartington.ca/",
+    timezone: "America/Toronto",
+    location: "North Grenville Public Library — Tallman Room",
+    address: "1 Water Street, Kemptville, ON",
+    directions: "https://www.google.com/maps/search/?api=1&query=North+Grenville+Public+Library+105+Prescott+Street+Kemptville+ON",
+    status: "Published",
+    featured: false
+  },
+  {
     id: "ross-fattori-self-publishing-2026-09-21",
     date: "2026-09-21",
     startTime: "18:00",
