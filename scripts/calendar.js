@@ -34,42 +34,54 @@
       return null;
     }
   }
-  function eventShareUrl(eventId) {
-    return new URL(`share/events/${encodeURIComponent(eventId)}.html`, document.baseURI);
+  function eventPreviewUrl(eventId) {
+    return new URL(`share/events/${encodeURIComponent(eventId)}.html?v=4`, document.baseURI).href;
   }
-  function facebookShareUrl(shareUrl) {
-    const url = new URL('https://www.facebook.com/sharer/sharer.php');
-    url.searchParams.set('u', shareUrl.href);
-    return url.href;
-  }
-  async function addFacebookShareButton(event, row, target) {
-    if (!event.id) return;
-    const shareUrl = eventShareUrl(event.id);
-    try {
-      let response = await fetch(shareUrl, { method: 'HEAD', cache: 'no-store' });
-      if (response.status === 405) {
-        response = await fetch(shareUrl, { method: 'GET', cache: 'no-store' });
-      }
-      if (!response.ok || !row.isConnected) return;
-    } catch (error) {
-      console.info('Facebook share artifact is not available yet for this event.');
+  async function copyText(value) {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(value);
       return;
     }
+    const textarea = document.createElement('textarea');
+    textarea.value = value;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    const copied = document.execCommand('copy');
+    textarea.remove();
+    if (!copied) throw new Error('Copy command failed');
+  }
+  function addCopyLinkButton(event, target) {
+    if (!event.id) return;
     const actions = document.createElement('div');
     actions.className = 'event-actions';
-    const link = document.createElement('a');
-    link.className = 'button';
-    link.href = facebookShareUrl(shareUrl);
-    link.target = '_blank';
-    link.rel = 'noopener noreferrer';
-    link.textContent = 'Share to Facebook';
-    link.setAttribute('aria-label', `Share ${event.title || 'this event'} to Facebook`);
-    actions.appendChild(link);
+    const button = document.createElement('button');
+    button.className = 'button';
+    button.type = 'button';
+    button.textContent = 'Copy link';
+    button.setAttribute('aria-label', `Copy link to ${event.title || 'this event'}`);
+    button.addEventListener('click', async () => {
+      const originalText = 'Copy link';
+      button.disabled = true;
+      try {
+        await copyText(eventPreviewUrl(event.id));
+        button.textContent = 'Copied!';
+      } catch (error) {
+        console.error('Could not copy event link:', error);
+        button.textContent = 'Copy failed';
+      }
+      window.setTimeout(() => {
+        button.textContent = originalText;
+        button.disabled = false;
+      }, 1500);
+    });
+    actions.appendChild(button);
     target.appendChild(actions);
   }
   function render(events) {
     const fragment = document.createDocumentFragment();
-    const shareTargets = [];
     events.forEach((event) => {
       const row = document.createElement('tr');
       row.id = event.id || '';
@@ -123,13 +135,10 @@
         details.append(summary, description);
         title.appendChild(details);
       }
-      if (event.id) shareTargets.push({ event, row, target: title });
+      addCopyLinkButton(event, title);
       fragment.appendChild(row);
     });
     rows.replaceChildren(fragment);
-    shareTargets.forEach(({ event, row, target }) => {
-      addFacebookShareButton(event, row, target);
-    });
     wrapper.hidden = !events.length;
     status.hidden = events.length > 0;
     status.textContent = events.length
