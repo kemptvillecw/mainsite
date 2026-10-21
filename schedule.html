@@ -7,6 +7,39 @@
   <meta property="og:description" content="Find the next KCW meeting and upcoming writing events.">
   <title>Schedule &amp; Events | Kemptville Creative Writers</title>
   <link rel="stylesheet" href="styles/styles.css">
+  <style>
+    .schedule-calendar .schedule-calendar-table td:nth-child(3) > strong {
+      display: block;
+      margin-bottom: 8px;
+    }
+    .schedule-calendar .schedule-calendar-table td:nth-child(3) > details {
+      display: inline-block;
+      margin: 0;
+      vertical-align: baseline;
+    }
+    .schedule-calendar .schedule-calendar-table td:nth-child(3) > details[open] {
+      display: block;
+      margin-bottom: 6px;
+    }
+    .schedule-calendar .schedule-calendar-table td:nth-child(3) > .calendar-copy-action {
+      display: inline-block;
+      margin: 0 0 0 .65em;
+      vertical-align: baseline;
+    }
+    .schedule-calendar .schedule-calendar-table td:nth-child(3) > details + .calendar-copy-action::before {
+      content: "·";
+      color: var(--muted);
+      margin-right: .65em;
+    }
+    .schedule-calendar .schedule-calendar-table .calendar-copy-link {
+      color: var(--forest);
+      font-size: 1em;
+      font-weight: 400;
+    }
+    .schedule-calendar .schedule-calendar-table .calendar-copy-link::before {
+      content: none;
+    }
+  </style>
 </head>
 <body>
   <header class="site-header">
@@ -65,6 +98,6 @@
       <p>© 2026 Kemptville Creative Writers</p>
     </div>
   </footer>
-  <script src="data/events.js"></script><script src="data/announcements.js"></script><script src="scripts/site.js"></script><script src="scripts/event-description.js"></script><script src="scripts/events.js"></script>
-  <script src="data/calendar.js"></script><script>window.KCW_CALENDAR.daysAhead = 90;</script><script src="scripts/calendar.js?v=20261010-event-preview"></script>
+  <script src="data/events.js"></script><script src="data/announcements.js"></script><script src="scripts/site.js"></script><script src="scripts/event-description.js"></script><script src="scripts/events.js?v=20261020-featured-schedule-link"></script>
+  <script src="data/calendar.js"></script><script>window.KCW_CALENDAR.daysAhead = 90;</script><script src="scripts/calendar.js?v=20261020-copy-link-cleanup"></script>
 </body></html>
