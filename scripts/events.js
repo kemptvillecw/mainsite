@@ -100,6 +100,8 @@
   function renderCalendarEvent(target, event) {
     const metadata = event.metadata || {};
     const featured = window.KCWEventDescription.isFeatured(metadata, calendarToday());
+    const scheduleHref = featured && event.id ? `schedule.html#${encodeURIComponent(event.id)}` : "schedule.html";
+    const scheduleLabel = featured ? "Event Details" : "View Schedule & Events";
     homepageEvent = { ...metadata, id: event.id, title: event.summary || "Upcoming event" };
     const allDay = Boolean(event.start.date);
     const start = new Date(event.start.dateTime || event.start.date);
@@ -110,7 +112,7 @@
       <div class="featured-event-content"><div class="featured-event-intro"><div>
       <p class="eyebrow">What's next</p><p class="featured-speaker" hidden></p><h2 id="featured-heading"></h2>
       <p class="featured-event-description"></p></div></div><div class="event-meta"><div data-next-date></div><div data-next-time></div><div data-next-location></div></div>
-      <div class="event-actions"><a class="button button-primary" href="schedule.html">View Schedule &amp; Events</a></div></div>`;
+      <div class="event-actions"><a class="button button-primary" href="${scheduleHref}">${scheduleLabel}</a></div></div>`;
     target.querySelector(".featured-event-date span").textContent = label(start, { month: "short" }).toUpperCase();
     target.querySelector(".featured-event-date strong").textContent = label(start, { day: "2-digit" });
     target.querySelector(".featured-event-date small").textContent = label(start, { year: "numeric" });
