@@ -101,6 +101,21 @@
   function eventPreviewUrl(eventId) {
     return new URL(`share/events/${encodeURIComponent(eventId)}.html?v=4`, document.baseURI).href;
   }
+  function eventScheduleUrl(eventId) {
+    const url = new URL('schedule.html', document.baseURI);
+    url.hash = encodeURIComponent(eventId);
+    return url.href;
+  }
+  async function eventCopyUrl(eventId) {
+    const previewUrl = eventPreviewUrl(eventId);
+    try {
+      const response = await fetch(previewUrl, { method: 'HEAD', cache: 'no-store' });
+      if (response.ok) return previewUrl;
+    } catch (error) {
+      console.warn('Could not verify event share page; using schedule link instead.', error);
+    }
+    return eventScheduleUrl(eventId);
+  }
   async function copyText(value) {
     if (navigator.clipboard && window.isSecureContext) {
       await navigator.clipboard.writeText(value);
@@ -130,7 +145,7 @@
       const originalText = 'Copy link';
       button.disabled = true;
       try {
-        await copyText(eventPreviewUrl(event.id));
+        await copyText(await eventCopyUrl(event.id));
         button.textContent = 'Copied!';
       } catch (error) {
         console.error('Could not copy event link:', error);
