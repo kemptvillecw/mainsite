@@ -23,15 +23,39 @@
     return dialog;
   }
 
+  function positionScheduleLink(target) {
+    const content = target.querySelector('.featured-event-content');
+    const meta = content?.querySelector('.event-meta');
+    if (!content || !meta) return false;
+
+    const link = Array.from(target.querySelectorAll('.event-actions a')).find((candidate) =>
+      candidate.textContent.trim().toLowerCase() === 'event details'
+    ) || target.querySelector('.featured-event-schedule-link');
+
+    if (!link) return false;
+
+    link.classList.remove('button', 'button-primary');
+    link.classList.add('featured-event-schedule-link');
+    if (link.textContent.trim() !== 'Event details') link.textContent = 'Event details';
+
+    if (link.parentElement !== content || link.nextElementSibling !== meta) {
+      content.insertBefore(link, meta);
+    }
+
+    const actions = content.querySelector('.event-actions');
+    if (actions && !actions.children.length) actions.remove();
+    return true;
+  }
+
   function applyClamp(target) {
     const description = target.querySelector('.featured-event-description');
     const title = target.querySelector('#featured-heading');
-    if (!description || !title || description.hidden) return;
+    if (!description || !title || description.hidden) return false;
 
-    const existingLink = target.querySelector('.featured-event-details-link');
     description.classList.remove('is-overflowing');
 
     requestAnimationFrame(() => {
+      const existingLink = target.querySelector('.featured-event-details-link');
       const overflowing = description.scrollHeight > description.clientHeight + 1;
       if (!overflowing) {
         existingLink?.remove();
@@ -55,6 +79,8 @@
 
       description.insertAdjacentElement('afterend', link);
     });
+
+    return true;
   }
 
   function init() {
@@ -62,17 +88,27 @@
     if (!target) return;
 
     let resizeTimer;
-    const refresh = () => applyClamp(target);
+    let observer;
 
-    const observer = new MutationObserver(refresh);
+    const enhance = () => {
+      const positioned = positionScheduleLink(target);
+      const clamped = applyClamp(target);
+
+      if (positioned || clamped) {
+        observer?.disconnect();
+        observer = null;
+      }
+    };
+
+    observer = new MutationObserver(enhance);
     observer.observe(target, { childList: true, subtree: true, characterData: true });
 
     window.addEventListener('resize', () => {
       clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(refresh, 120);
+      resizeTimer = setTimeout(() => applyClamp(target), 120);
     });
 
-    refresh();
+    enhance();
   }
 
   if (document.readyState === 'loading') {

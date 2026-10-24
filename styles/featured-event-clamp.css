@@ -8,21 +8,15 @@
 }
 
 @media (min-width: 701px) {
-  .featured-event-intro {
-    height: 320px;
-  }
-
   .featured-event-intro > div {
     display: flex;
     flex-direction: column;
-    height: 100%;
     min-height: 0;
   }
 
   .featured-event-description {
     position: relative;
-    flex: 1 1 auto;
-    min-height: 0;
+    max-height: 13rem;
     overflow: hidden;
     margin-bottom: 0;
   }
@@ -44,6 +38,32 @@
     #000 calc(100% - 5.5rem),
     transparent 100%
   );
+}
+
+/* Match the lightweight disclosure-style Event details action used by the schedule table. */
+.featured-event-schedule-link {
+  display: block;
+  width: max-content;
+  margin-top: 10px;
+  margin-left: auto;
+  color: var(--forest);
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.featured-event-schedule-link::before {
+  content: '▸';
+  margin-right: .45em;
+}
+
+.featured-event-schedule-link:hover {
+  text-decoration: underline;
+}
+
+.featured-event-schedule-link:focus-visible {
+  outline: 2px solid var(--forest);
+  outline-offset: 3px;
 }
 
 .featured-event-details-link {
