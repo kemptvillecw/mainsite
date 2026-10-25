@@ -1,0 +1,35 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Kemptville Creative Writers//KCW Newsletter//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VTIMEZONE
+TZID:America/Toronto
+X-LIC-LOCATION:America/Toronto
+BEGIN:DAYLIGHT
+TZOFFSETFROM:-0500
+TZOFFSETTO:-0400
+TZNAME:EDT
+DTSTART:20070311T020000
+RRULE:FREQ=YEARLY;BYMONTH=3;BYDAY=2SU
+END:DAYLIGHT
+BEGIN:STANDARD
+TZOFFSETFROM:-0400
+TZOFFSETTO:-0500
+TZNAME:EST
+DTSTART:20071104T020000
+RRULE:FREQ=YEARLY;BYMONTH=11;BYDAY=1SU
+END:STANDARD
+END:VTIMEZONE
+BEGIN:VEVENT
+UID:iob2qjmi973us6lvl20atf00hg@kemptvillecreativewriters.com
+DTSTAMP:20261025T203600Z
+DTSTART;TZID=America/Toronto:20261116T180000
+DTEND;TZID=America/Toronto:20261116T200000
+SUMMARY:Lis Angus: Short Stories
+DESCRIPTION:Join Canadian suspense writer Lis Angus for a KCW session focused on short stories. Lis is the author of Not Your Child and That Other Family\, with published short fiction including A Walk in the Park and Under the Circumstances.
+LOCATION:Tallman Room\, North Grenville Public Library\, 1 Water St\, Kemptville\, ON
+URL:https://www.kemptvillecreativewriters.com/schedule.html
+STATUS:CONFIRMED
+END:VEVENT
+END:VCALENDAR
