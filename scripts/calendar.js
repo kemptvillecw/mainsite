@@ -283,7 +283,8 @@
       events: calendarEvents.map(event => ({
         id: event.id, title: event.title, start: event.start, end: event.end,
         allDay: event.allDay, featured: event.featured, image: event.image,
-        imageAlt: event.imageAlt, description: window.KCWEventDescription.plainText(event.description)
+        imageAlt: event.imageAlt, location: event.location,
+        description: window.KCWEventDescription.plainText(event.description)
       }))
     };
     const targetId = hashEventId();
@@ -347,6 +348,7 @@
             featured: metadata.featured === true,
             image: metadata.image || '',
             imageAlt: metadata.imageAlt || '',
+            location: item.location || '',
             speaker: metadata.speaker || '',
             speakerRole: metadata.speakerRole || '',
             speakerUrl: metadata.speakerUrl || ''
