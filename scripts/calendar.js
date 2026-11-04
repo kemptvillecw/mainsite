@@ -8,6 +8,7 @@
   const rows = section.querySelector('[data-calendar-rows]');
   const PAGE_SIZE = 5;
   let calendarEvents = [];
+  window.KCW_SANITY_SCHEDULE = { state: 'loading', events: [] };
   let currentPage = 0;
   let pagination = null;
 
@@ -276,12 +277,23 @@
   }
   function render(events) {
     calendarEvents = preferredEvents(events);
+    // This is the full set used by the published schedule, not just its first page.
+    window.KCW_SANITY_SCHEDULE = {
+      state: 'loaded',
+      events: calendarEvents.map(event => ({
+        id: event.id, title: event.title, start: event.start, end: event.end,
+        allDay: event.allDay, featured: event.featured, image: event.image,
+        imageAlt: event.imageAlt, location: event.location,
+        description: window.KCWEventDescription.plainText(event.description)
+      }))
+    };
     const targetId = hashEventId();
     const targetIndex = targetId ? calendarEvents.findIndex((event) => event.id === targetId) : -1;
     const initialPage = targetIndex >= 0 ? Math.floor(targetIndex / PAGE_SIZE) : 0;
     showPage(initialPage, { targetId: targetIndex >= 0 ? targetId : '' });
   }
   async function load() {
+    window.KCW_SANITY_SCHEDULE = { state: 'loading', events: [] };
     retry.hidden = true;
     wrapper.hidden = true;
     status.hidden = false;
@@ -336,6 +348,7 @@
             featured: metadata.featured === true,
             image: metadata.image || '',
             imageAlt: metadata.imageAlt || '',
+            location: item.location || '',
             speaker: metadata.speaker || '',
             speakerRole: metadata.speakerRole || '',
             speakerUrl: metadata.speakerUrl || ''
@@ -345,6 +358,7 @@
       } while (pageToken);
       render(events.sort((a, b) => a.start - b.start));
     } catch (error) {
+      window.KCW_SANITY_SCHEDULE = { state: 'error', events: [] };
       console.error('Calendar loading failed:', error.name, error.message.replace(/AIza[\w-]+/g, '[redacted]'));
       status.textContent = location.protocol === 'file:'
         ? 'To load calendar events in this local preview, open this page through the local preview server.'
