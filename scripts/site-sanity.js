@@ -65,6 +65,9 @@
         : (window.KCW_SANITY_FEATURED_STATE || 'unavailable'),
       calendar: PAGE === 'schedule' ? (window.KCW_SANITY_SCHEDULE?.events || []) : [],
       staticSchedule: PAGE === 'schedule' ? staticSchedule() : [],
+      regularScheduleText: PAGE === 'schedule'
+        ? (document.querySelector('.schedule-info')?.textContent || '').replace(/\s+/g, ' ').trim()
+        : '',
       featured: PAGE === 'homepage' ? selectedFeatured() : null
     };
   }
