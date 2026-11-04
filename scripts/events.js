@@ -1,6 +1,7 @@
 (function () {
   const events = Array.isArray(window.KCW_EVENTS) ? window.KCW_EVENTS : [];
   let homepageEvent = null;
+  window.KCW_SANITY_FEATURED_STATE = 'loading';
 
   function parseLocalDate(date, time) {
     return new Date(`${date}T${time || "00:00"}:00`);
@@ -103,6 +104,10 @@
     const scheduleHref = featured && event.id ? `schedule.html#${encodeURIComponent(event.id)}` : "schedule.html";
     const scheduleLabel = featured ? "Event Details" : "View Schedule & Events";
     homepageEvent = { ...metadata, id: event.id, title: event.summary || "Upcoming event" };
+    target.dataset.eventId = event.id || '';
+    target.dataset.sanityStart = event.start.dateTime || event.start.date || '';
+    target.dataset.sanityEnd = event.end.dateTime || event.end.date || '';
+    target.dataset.sanityDate = '';
     const allDay = Boolean(event.start.date);
     const start = new Date(event.start.dateTime || event.start.date);
     const end = new Date(event.end.dateTime || event.end.date);
@@ -248,11 +253,13 @@
               ? !isFeatured(event, today) || scheduledStart < parseLocalDate(event.date, event.startTime).getTime()
               : !isFeatured(event, today) && scheduledStart < parseLocalDate(event.date, event.startTime).getTime()))) {
           renderCalendarEvent(target, scheduled);
+          window.KCW_SANITY_FEATURED_STATE = 'loaded';
           return;
         }
       } catch (error) {
         console.error("Homepage calendar loading failed:", error.name, error.code || "LOAD_FAILED");
         if (!event) {
+          window.KCW_SANITY_FEATURED_STATE = 'error';
           target.innerHTML = `<div class="empty-event"><p class="eyebrow">What's next</p><h2 id="featured-heading">Check the schedule for our next event.</h2><p>We couldn’t load the calendar right now. Please try again shortly.</p><a class="button button-primary" href="schedule.html">View Schedule &amp; Events</a></div>`;
           if (error.code === "LOCAL_PREVIEW" || error.code === "API_KEY_HTTP_REFERRER_BLOCKED") {
             target.querySelector(".empty-event > p:not(.eyebrow)").textContent = "The calendar isn’t available at this preview address. View the published website for the next scheduled event.";
@@ -266,11 +273,15 @@
     }
 
     if (!event) {
+      window.KCW_SANITY_FEATURED_STATE = 'empty';
       target.innerHTML = `<div class="empty-event"><p class="eyebrow">What's next</p><h2 id="featured-heading">Our next event is being planned.</h2><p>Please check back soon or join the newsletter for updates.</p><a class="button button-primary" href="#newsletter">Join the newsletter</a></div>`;
       return;
     }
 
     target.dataset.eventId = event.id;
+    target.dataset.sanityDate = event.date || '';
+    target.dataset.sanityStart = event.date + 'T' + (event.startTime || '00:00');
+    target.dataset.sanityEnd = event.date + 'T' + (event.endTime || '00:00');
     homepageEvent = event;
     target.innerHTML = `<div class="featured-event-date" aria-hidden="true">
         <span>${formatMonth(event.date)}</span><strong>${formatDay(event.date)}</strong><small>${event.date.slice(0, 4)}</small>
@@ -299,6 +310,7 @@
       const hoverText = usesSpeakerName ? event.speaker : event.hoverText;
       if (hoverText) photo.title = hoverText;
     }
+    window.KCW_SANITY_FEATURED_STATE = 'loaded';
   }
 
   function renderLearningOutcomes() {
